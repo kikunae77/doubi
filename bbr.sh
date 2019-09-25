@@ -8,17 +8,19 @@ export PATH
 #	Version: 1.0.22
 #	Author: Toyo
 #	Blog: https://doub.io/wlzy-16/
+#	Tranlate: kikunae
+#	Blog: https://blog.szkorean.net
 #=================================================
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
-Info="${Green_font_prefix}[信息]${Font_color_suffix}"
-Error="${Red_font_prefix}[错误]${Font_color_suffix}"
-Tip="${Green_font_prefix}[注意]${Font_color_suffix}"
+Info="${Green_font_prefix}[정보]${Font_color_suffix}"
+Error="${Red_font_prefix}[오류]${Font_color_suffix}"
+Tip="${Green_font_prefix}[주의]${Font_color_suffix}"
 filepath=$(cd "$(dirname "$0")"; pwd)
 file=$(echo -e "${filepath}"|awk -F "$0" '{print $1}')
 
 check_root(){
-	[[ $EUID != 0 ]] && echo -e "${Error} 当前非ROOT账号(或没有ROOT权限)，无法继续操作，请更换ROOT账号或使用 ${Green_background_prefix}sudo su${Font_color_suffix} 命令获取临时ROOT权限（执行后可能会提示输入当前账号的密码）。" && exit 1
+	[[ $EUID != 0 ]] && echo -e "${Error} 현재 사용자는 ROOT계정(또는ROOT권한을 가진 계정)이 아니어서，계속 진행할 수 없습니다.${Green_background_prefix} sudo su ${Font_color_suffix}명령어로 ROOT 권한을 임시로 획득한 후 다시 스크립트를 시작하세요." && exit 1
 }
 #检查系统
 check_sys(){
@@ -39,19 +41,19 @@ check_sys(){
     fi
 }
 Set_latest_new_version(){
-	echo -e "请输入 要下载安装的Linux内核版本(BBR) ${Green_font_prefix}[ 格式: x.xx.xx ，例如: 4.9.96 ]${Font_color_suffix}
-${Tip} 内核版本列表请去这里获取：${Green_font_prefix}[ http://kernel.ubuntu.com/~kernel-ppa/mainline/ ]${Font_color_suffix}
-建议使用${Green_font_prefix}稳定版本：4.9.XX ${Font_color_suffix}，4.9 以上版本属于测试版，稳定版与测试版同步更新，BBR 加速效果无区别。"
-	read -e -p "(直接回车，自动获取最新稳定版本):" latest_version
+	echo -e "다운로드하여 설치할 리눅스 커널 버전(BBR)을 입력하세요.${Green_font_prefix}[ 형식: x.xx.xx ，예: 4.9.96 ]${Font_color_suffix}
+${Tip} 커널버젼목록은 다음 사이트에서 확인할 수 있습니다.：${Green_font_prefix}[ http://kernel.ubuntu.com/~kernel-ppa/mainline/ ]${Font_color_suffix}
+${Green_font_prefix}안정 버전인：4.9.XX ${Font_color_suffix}사용을 추천합니다. 4.9이상 버전은 테스트 버전입니다. 안정 버전과 테스트 버전은 동시에 업데이트 되므로 BBR 가속효과는 동일합니다."
+	read -e -p "(엔터를 누르면 자동으로 최신 안정 버전을 확인합니다.):" latest_version
 	[[ -z "${latest_version}" ]] && get_latest_new_version
 	echo
 }
-# 本段获取最新版本的代码来源自: https://teddysun.com/489.html
+# 여기서 최신 안정 버전 확인: https://teddysun.com/489.html
 get_latest_new_version(){
-	echo -e "${Info} 检测稳定版内核最新版本中..."
+	echo -e "${Info} 안정판 최신 커널 버전 확인 중..."
 	latest_version=$(wget -qO- -t1 -T2 "http://kernel.ubuntu.com/~kernel-ppa/mainline/" | awk -F'\"v' '/v4.9.*/{print $2}' |grep -v '\-rc'| cut -d/ -f1 | sort -V | tail -1)
-	[[ -z ${latest_version} ]] && echo -e "${Error} 检测内核最新版本失败 !" && exit 1
-	echo -e "${Info} 稳定版内核最新版本为 : ${latest_version}"
+	[[ -z ${latest_version} ]] && echo -e "${Error} 최신 커널 버전 확인 실패 !" && exit 1
+	echo -e "${Info} 안정판 최신 커널 버전 : ${latest_version}"
 }
 get_latest_version(){
 	Set_latest_new_version
@@ -66,7 +68,7 @@ get_latest_version(){
 		deb_kernel_name="linux-image-${latest_version}-i386.deb"
 	fi
 }
-#检查内核是否满足
+#커널버전 적합여부 확인
 check_deb_off(){
 	get_latest_new_version
 	deb_ver=`dpkg -l|grep linux-image | awk '{print $2}' | awk -F '-' '{print $3}' | grep '[4-9].[0-9]*.'`
@@ -76,49 +78,49 @@ check_deb_off(){
 	fi
 	if [[ "${deb_ver}" != "" ]]; then
 		if [[ "${deb_ver}" == "${latest_version}" ]]; then
-			echo -e "${Info} 检测到当前内核版本[${deb_ver}] 已满足要求，继续..."
+			echo -e "${Info} 현재 커널 버전[${deb_ver}]이 요구사항을 만족합니다. 계속합니다..."
 		else
-			echo -e "${Tip} 检测到当前内核版本[${deb_ver}] 支持开启BBR 但不是最新内核版本，可以使用${Green_font_prefix} bash ${file}/bbr.sh ${Font_color_suffix}来升级内核 !(注意：并不是越新的内核越好，4.9 以上版本的内核 目前皆为测试版，不保证稳定性，旧版本如使用无问题 建议不要升级！)"
+			echo -e "${Tip} 현재 커널 버전[${deb_ver}]이 BBR 사용을 지원하지만 최신 버전은 아닙니다. ${Green_font_prefix} bash ${file}/bbr.sh ${Font_color_suffix}명령어로 커널을 업데이트 할 수 있습니다! (주의：새 버전이 반드시 좋은 것은 아니며, 4.9 이상 버전의 커널은 테스트 버전으로 안정성을 보증하지 못합니다. 구 버전이 사용에 문제가 없으면，업데이트 하지 않기를 권장합니다!)"
 		fi
 	else
-		echo -e "${Error} 检测到当前内核版本[${deb_ver}] 不支持开启BBR，请使用${Green_font_prefix} bash ${file}/bbr.sh ${Font_color_suffix}来更换最新内核 !" && exit 1
+		echo -e "${Error} 현재 커널 버전[${deb_ver}]이 BBR 사용을 지원하지 않습니다. ${Green_font_prefix} bash ${file}/bbr.sh ${Font_color_suffix}명령어로 커널을 업데이트 하세요 !" && exit 1
 	fi
 }
-# 删除其余内核
+# 여분 커널 삭제
 del_deb(){
 	deb_total=`dpkg -l | grep linux-image | awk '{print $2}' | grep -v "${latest_version}" | wc -l`
 	if [[ "${deb_total}" -ge "1" ]]; then
-		echo -e "${Info} 检测到 ${deb_total} 个其余内核，开始卸载..."
+		echo -e "${Info} ${deb_total} 개의 여분 커널이 발견되었습니다. 삭제를 시작합니다..."
 		for((integer = 1; integer <= ${deb_total}; integer++))
 		do
 			deb_del=`dpkg -l|grep linux-image | awk '{print $2}' | grep -v "${latest_version}" | head -${integer}`
-			echo -e "${Info} 开始卸载 ${deb_del} 内核..."
+			echo -e "${Info} ${deb_del} 커널을 삭제합니다..."
 			apt-get purge -y ${deb_del}
-			echo -e "${Info} 卸载 ${deb_del} 内核卸载完成，继续..."
+			echo -e "${Info} ${deb_del} 커널 삭제가 완료되었습니다. 계속합니다..."
 		done
 		deb_total=`dpkg -l|grep linux-image | awk '{print $2}' | wc -l`
 		if [[ "${deb_total}" = "1" ]]; then
-			echo -e "${Info} 内核卸载完毕，继续..."
+			echo -e "${Info} 커널 삭제가 완료되었습니다. 계속합니다..."
 		else
-			echo -e "${Error} 内核卸载异常，请检查 !" && exit 1
+			echo -e "${Error} 커널 삭제 오류. 확인해주세요 !" && exit 1
 		fi
 	else
-		echo -e "${Info} 检测到除刚安装的内核以外已无多余内核，跳过卸载多余内核步骤 !"
+		echo -e "${Info} 방금 설치한 커널 이외에 여분 커널이 없는 것으로 확인됩니다. 여유분 커널 삭제 과정을 건너뜁니다 !"
 	fi
 }
 del_deb_over(){
 	del_deb
 	update-grub
 	addsysctl
-	echo -e "${Tip} 重启VPS后，请运行脚本查看 BBR 是否正常加载，运行命令： ${Green_background_prefix} bash ${file}/bbr.sh status ${Font_color_suffix}"
-	read -e -p "需要重启VPS后，才能开启BBR，是否现在重启 ? [Y/n] :" yn
+	echo -e "${Tip} VPS 재시동 후，스크립트를 실행해 BBR이 정상 실행중인지 확인하세요. 명령어： ${Green_background_prefix} bash ${file}/bbr.sh status ${Font_color_suffix}"
+	read -e -p "VPS를 재시동해야 BBR이 시작됩니다. 지금 다시 시작하겠습니까? [Y/n] :" yn
 	[[ -z "${yn}" ]] && yn="y"
 	if [[ $yn == [Yy] ]]; then
-		echo -e "${Info} VPS 重启中..."
+		echo -e "${Info} VPS 재시작 중..."
 		reboot
 	fi
 }
-# 安装BBR
+# BBR 설치
 installbbr(){
 	check_root
 	get_latest_version
@@ -129,26 +131,26 @@ installbbr(){
 	fi
 	if [[ "${deb_ver}" != "" ]]; then	
 		if [[ "${deb_ver}" == "${latest_version}" ]]; then
-			echo -e "${Info} 检测到当前内核版本[${deb_ver}] 已是最新版本，无需继续 !"
+			echo -e "${Info} 현재 커널 버전[${deb_ver}]이 이미 최신 버전입니다. 설치할 필요가 없습니다 !"
 			deb_total=`dpkg -l|grep linux-image | awk '{print $2}' | grep -v "${latest_version}" | wc -l`
 			if [[ "${deb_total}" != "0" ]]; then
-				echo -e "${Info} 检测到内核数量异常，存在多余内核，开始删除..."
+				echo -e "${Info} 커널 수량에 이상이 발견되었습니다. 커널 수량이 많습니다. 제거를 시작합니다..."
 				del_deb_over
 			else
 				exit 1
 			fi
 		else
-			echo -e "${Info} 检测到当前内核版本支持开启BBR 但不是最新内核版本，开始升级(或降级)内核..."
+			echo -e "${Info} 현재 커널 버전이 BBR사용을 지원하지만 최신 버전은 아닙니다. 커널을 업그레이드(또는 다운그레이드)합니다..."
 		fi
 	else
-		echo -e "${Info} 检测到当前内核版本不支持开启BBR，开始..."
+		echo -e "${Info} 커널 버전이 BBR사용을 지원하지 않습니다..."
 		virt=`virt-what`
 		if [[ -z ${virt} ]]; then
 			apt-get update && apt-get install virt-what -y
 			virt=`virt-what`
 		fi
 		if [[ ${virt} == "openvz" ]]; then
-			echo -e "${Error} BBR 不支持 OpenVZ 虚拟化(不支持更换内核) !" && exit 1
+			echo -e "${Error} BBR이 OpenVZ 가상화를 지원하지 않습니다(커널 변경 미지원) !" && exit 1
 		fi
 	fi
 	echo "nameserver 8.8.8.8" > /etc/resolv.conf
@@ -156,31 +158,31 @@ installbbr(){
 	
 	wget -O "${deb_kernel_name}" "${deb_kernel_url}"
 	if [[ -s ${deb_kernel_name} ]]; then
-		echo -e "${Info} 内核安装包下载成功，开始安装内核..."
+		echo -e "${Info} 커널 설치 파일 다운로드 성공，커널을 설치합니다..."
 		dpkg -i ${deb_kernel_name}
 		rm -rf ${deb_kernel_name}
 	else
-		echo -e "${Error} 内核安装包下载失败，请检查 !" && exit 1
+		echo -e "${Error} 커널 설치 파일 다운로드 실패，확인해주세요 !" && exit 1
 	fi
 	#判断内核是否安装成功
 	deb_ver=`dpkg -l | grep linux-image | awk '{print $2}' | awk -F '-' '{print $3}' | grep "${latest_version}"`
 	if [[ "${deb_ver}" != "" ]]; then
-		echo -e "${Info} 检测到内核安装成功，开始卸载其余内核..."
+		echo -e "${Info} 커널 설치 성공，여분의 커널 삭제를 시작합니다..."
 		del_deb_over
 	else
-		echo -e "${Error} 检测到内核安装失败，请检查 !" && exit 1
+		echo -e "${Error} 커널 설치 실패，확인해주세요 !" && exit 1
 	fi
 }
 bbrstatus(){
 	check_bbr_status_on=`sysctl net.ipv4.tcp_congestion_control | awk '{print $3}'`
 	if [[ "${check_bbr_status_on}" = "bbr" ]]; then
-		echo -e "${Info} 检测到 BBR 已开启 !"
-		# 检查是否启动BBR
+		echo -e "${Info} BBR이 이미 시작되었습니다 !"
+		# BBR 시작되었는지 확인
 		check_bbr_status_off=`lsmod | grep bbr`
 		if [[ "${check_bbr_status_off}" = "" ]]; then
-			echo -e "${Error} 检测到 BBR 已开启但未正常启动，请尝试使用低版本内核(可能是存着兼容性问题，虽然内核配置中打开了BBR，但是内核加载BBR模块失败) !"
+			echo -e "${Error} BBR이 시작되었느나 정상적으로 운용되지 않고 있습니다. 낮은 버전의 커널을 사용하여 테스트해주세요.(겸용성 문제일 수 있습니다. 커널이 BBR 실행은 가능하지만 사용은 불가능합니다.) !"
 		else
-			echo -e "${Info} 检测到 BBR 已开启并已正常启动 !"
+			echo -e "${Info} BBR이 시작되어 정상 운용중입니다 !"
 		fi
 		exit 1
 	fi
@@ -200,7 +202,7 @@ startbbr(){
 	sleep 1s
 	bbrstatus
 }
-# 关闭BBR
+# BBR 중지
 stopbbr(){
 	check_deb_off
 	sed -i '/net\.core\.default_qdisc=fq/d' /etc/sysctl.conf
@@ -208,21 +210,21 @@ stopbbr(){
 	sysctl -p
 	sleep 1s
 	
-	read -e -p "需要重启VPS后，才能彻底停止BBR，是否现在重启 ? [Y/n] :" yn
+	read -e -p "VPS를 재시동해야，BBR이 중지 됩니다. 지금 다시 시작하겠습니까? [Y/n] :" yn
 	[[ -z "${yn}" ]] && yn="y"
 	if [[ $yn == [Yy] ]]; then
-		echo -e "${Info} VPS 重启中..."
+		echo -e "${Info} VPS 재시작 중..."
 		reboot
 	fi
 }
-# 查看BBR状态
+# BBR상태 확인
 statusbbr(){
 	check_deb_off
 	bbrstatus
-	echo -e "${Error} BBR 未开启 !"
+	echo -e "${Error} BBR 시작되지 않음 !"
 }
 check_sys
-[[ ${release} != "debian" ]] && [[ ${release} != "ubuntu" ]] && echo -e "${Error} 本脚本不支持当前系统 ${release} !" && exit 1
+[[ ${release} != "debian" ]] && [[ ${release} != "ubuntu" ]] && echo -e "${Error} 본 스크립트는 현재 시스템을 지원하지 않습니다 ${release} !" && exit 1
 action=$1
 [[ -z $1 ]] && action=install
 case "$action" in
@@ -230,7 +232,7 @@ case "$action" in
 	${action}bbr
 	;;
 	*)
-	echo "输入错误 !"
-	echo "用法: { install | start | stop | status }"
+	echo "입력 에러 !"
+	echo "사용법: { install | start | stop | status }"
 	;;
 esac
