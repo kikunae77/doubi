@@ -1453,7 +1453,7 @@ menu_status(){
 check_sys
 [[ ${release} != "debian" ]] && [[ ${release} != "ubuntu" ]] && [[ ${release} != "centos" ]] && echo -e "${Error} 본 스크립트는 현재 시스템을 지원하지 않습니다. ${release} !" && exit 1
 echo -e "  ShadowsocksR 원클릭 관리 스크립트 ${Red_font_prefix}[v${sh_ver}]${Font_color_suffix}
-  ---- Toyo | doub.io/ss-jc42, Translate kikuna | blog.szkorean.net ----
+  ---- Toyo | doub.io/ss-jc42, Translate kikunae | blog.szkorean.net ----
 
   ${Green_font_prefix}1.${Font_color_suffix} ShadowsocksR 설치
   ${Green_font_prefix}2.${Font_color_suffix} ShadowsocksR 업데이트
