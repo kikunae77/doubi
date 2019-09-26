@@ -146,7 +146,7 @@ urlsafe_base64(){
 ss_link_qr(){
 	SSbase64=$(urlsafe_base64 "${method}:${password}@${ip}:${port}")
 	SSurl="ss://${SSbase64}"
-	SSQRcode="http://mqr.kr/qr/?t=${SSurl}"
+	SSQRcode="http://api.qrserver.com/v1/create-qr-code/?data=${SSurl}"
 	ss_link=" SS    링크     : ${Green_font_prefix}${SSurl}${Font_color_suffix} \n SS  QR코드     : ${Green_font_prefix}${SSQRcode}${Font_color_suffix}"
 }
 ssr_link_qr(){
@@ -155,7 +155,7 @@ ssr_link_qr(){
 	SSRPWDbase64=$(urlsafe_base64 "${password}")
 	SSRbase64=$(urlsafe_base64 "${ip}:${port}:${SSRprotocol}:${method}:${SSRobfs}:${SSRPWDbase64}")
 	SSRurl="ssr://${SSRbase64}"
-	SSRQRcode="http://mqr.kr/qr/?t=${SSRurl}"
+	SSRQRcode="http://api.qrserver.com/v1/create-qr-code/?data=${SSRurl}"
 	ssr_link=" SSR   링크     : ${Red_font_prefix}${SSRurl}${Font_color_suffix} \n SSR QR코드     : ${Red_font_prefix}${SSRQRcode}${Font_color_suffix} \n "
 }
 ss_ssr_determine(){
