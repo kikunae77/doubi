@@ -623,7 +623,7 @@ Download_SSR(){
 	rm -rf manyuser.zip
 	[[ -e ${config_folder} ]] && rm -rf ${config_folder}
 	mkdir ${config_folder}
-	[[ ! -e ${config_folder} ]] && echo -e "${Error} ShadowsocksR 설정 파일 서정할 디렉토리 생성 실패 !" && exit 1
+	[[ ! -e ${config_folder} ]] && echo -e "${Error} ShadowsocksR 설정 파일 저장할 디렉토리 생성 실패 !" && exit 1
 	echo -e "${Info} ShadowsocksR서버 다운로드 완료 !"
 }
 Service_SSR(){
