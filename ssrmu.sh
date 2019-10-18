@@ -27,13 +27,13 @@ BBR_file="${file}/bbr.sh"
 jq_file="${ssr_folder}/jq"
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
-Info="${Green_font_prefix}[信息]${Font_color_suffix}"
-Error="${Red_font_prefix}[错误]${Font_color_suffix}"
-Tip="${Green_font_prefix}[注意]${Font_color_suffix}"
+Info="${Green_font_prefix}[정보]${Font_color_suffix}"
+Error="${Red_font_prefix}[오류]${Font_color_suffix}"
+Tip="${Green_font_prefix}[주의]${Font_color_suffix}"
 Separator_1="——————————————————————————————"
 
 check_root(){
-	[[ $EUID != 0 ]] && echo -e "${Error} 当前账号非ROOT(或没有ROOT权限)，无法继续操作，请使用${Green_background_prefix} sudo su ${Font_color_suffix}来获取临时ROOT权限（执行后会提示输入当前账号的密码）。" && exit 1
+	[[ $EUID != 0 ]] && echo -e "${Error} 현재 계정이 ROOT가 아니어서(또는 ROOT 권한이 없어서) 계속 진행할 수 없습니다. ${Green_background_prefix} sudo su ${Font_color_suffix}명령어를 사용하여 임시로 ROOT 권한을 획득하세요.（실행시 계정 비번을 다시 입력해야 할 수 있습니다.)" && exit 1
 }
 check_sys(){
 	if [[ -f /etc/redhat-release ]]; then
@@ -57,30 +57,30 @@ check_pid(){
 	PID=`ps -ef |grep -v grep | grep server.py |awk '{print $2}'`
 }
 check_crontab(){
-	[[ ! -e "/usr/bin/crontab" ]] && echo -e "${Error} 缺少依赖 Crontab ，请尝试手动安装 CentOS: yum install crond -y , Debian/Ubuntu: apt-get install cron -y !" && exit 1
+	[[ ! -e "/usr/bin/crontab" ]] && echo -e "${Error} Crontab 라이브러리가 없습니다. 수동으로 설치해 보시기 바랍니다. CentOS: yum install crond -y, Debian/Ubuntu: apt-get install cron -y" && exit 1
 }
 SSR_installation_status(){
-	[[ ! -e ${ssr_folder} ]] && echo -e "${Error} 没有发现 ShadowsocksR 文件夹，请检查 !" && exit 1
+	[[ ! -e ${ssr_folder} ]] && echo -e "${Error} ShadowsocksR 디렉토리를 찾을 수 없습니다. 확인해주세요!" && exit 1
 }
 Server_Speeder_installation_status(){
-	[[ ! -e ${Server_Speeder_file} ]] && echo -e "${Error} 没有安装 锐速(Server Speeder)，请检查 !" && exit 1
+	[[ ! -e ${Server_Speeder_file} ]] && echo -e "${Error} 가속기(Server Speeder)가 설치되어 있지 않습니다. 확인해주세요!" && exit 1
 }
 LotServer_installation_status(){
-	[[ ! -e ${LotServer_file} ]] && echo -e "${Error} 没有安装 LotServer，请检查 !" && exit 1
+	[[ ! -e ${LotServer_file} ]] && echo -e "${Error} LotServer가 설치되어 있지 않습니다. 확인해주세요!" && exit 1
 }
 BBR_installation_status(){
 	if [[ ! -e ${BBR_file} ]]; then
-		echo -e "${Error} 没有发现 BBR脚本，开始下载..."
+		echo -e "${Error} BBR 스크립트를 찾을 수 없습니다. 다운로드를 시작합니다..."
 		cd "${file}"
-		if ! wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/bbr.sh; then
-			echo -e "${Error} BBR 脚本下载失败 !" && exit 1
+		if ! wget -N --no-check-certificate https://raw.githubusercontent.com/kikunae77/doubi/master/bbr.sh; then
+			echo -e "${Error} BBR 스크립트 다운로드 실패 !" && exit 1
 		else
-			echo -e "${Info} BBR 脚本下载完成 !"
+			echo -e "${Info} BBR 스크립트 다운로드  !"
 			chmod +x bbr.sh
 		fi
 	fi
 }
-# 设置 防火墙规则
+# 방화벽 규칙 설정
 Add_iptables(){
 	if [[ ! -z "${ssr_port}" ]]; then
 		iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport ${ssr_port} -j ACCEPT
@@ -119,7 +119,7 @@ Set_iptables(){
 		chmod +x /etc/network/if-pre-up.d/iptables
 	fi
 }
-# 读取 配置信息
+# 설정 정보 읽기
 Get_IP(){
 	ip=$(wget -qO- -t1 -T2 ipinfo.io/ip)
 	if [[ -z "${ip}" ]]; then
@@ -137,7 +137,7 @@ Get_User_info(){
 	user_info_get=$(python mujson_mgr.py -l -p "${Get_user_port}")
 	match_info=$(echo "${user_info_get}"|grep -w "### user ")
 	if [[ -z "${match_info}" ]]; then
-		echo -e "${Error} 用户信息获取失败 ${Green_font_prefix}[端口: ${ssr_port}]${Font_color_suffix} " && exit 1
+		echo -e "${Error} 사용자 정보 획득 실패 ${Green_font_prefix}[포트: ${ssr_port}]${Font_color_suffix} " && exit 1
 	fi
 	user_name=$(echo "${user_info_get}"|grep -w "user :"|awk -F "user : " '{print $NF}')
 	port=$(echo "${user_info_get}"|grep -w "port :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
@@ -145,13 +145,13 @@ Get_User_info(){
 	method=$(echo "${user_info_get}"|grep -w "method :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
 	protocol=$(echo "${user_info_get}"|grep -w "protocol :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
 	protocol_param=$(echo "${user_info_get}"|grep -w "protocol_param :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
-	[[ -z ${protocol_param} ]] && protocol_param="0(无限)"
+	[[ -z ${protocol_param} ]] && protocol_param="0(무한)"
 	obfs=$(echo "${user_info_get}"|grep -w "obfs :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
 	#transfer_enable=$(echo "${user_info_get}"|grep -w "transfer_enable :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}'|awk -F "ytes" '{print $1}'|sed 's/KB/ KB/;s/MB/ MB/;s/GB/ GB/;s/TB/ TB/;s/PB/ PB/')
 	#u=$(echo "${user_info_get}"|grep -w "u :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
 	#d=$(echo "${user_info_get}"|grep -w "d :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
 	forbidden_port=$(echo "${user_info_get}"|grep -w "forbidden_port :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
-	[[ -z ${forbidden_port} ]] && forbidden_port="无限制"
+	[[ -z ${forbidden_port} ]] && forbidden_port="무제한"
 	speed_limit_per_con=$(echo "${user_info_get}"|grep -w "speed_limit_per_con :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
 	speed_limit_per_user=$(echo "${user_info_get}"|grep -w "speed_limit_per_user :"|sed 's/[[:space:]]//g'|awk -F ":" '{print $NF}')
 	Get_User_transfer "${port}"
@@ -281,8 +281,8 @@ urlsafe_base64(){
 ss_link_qr(){
 	SSbase64=$(urlsafe_base64 "${method}:${password}@${ip}:${port}")
 	SSurl="ss://${SSbase64}"
-	SSQRcode="http://doub.pw/qr/qr.php?text=${SSurl}"
-	ss_link=" SS    链接 : ${Green_font_prefix}${SSurl}${Font_color_suffix} \n SS  二维码 : ${Green_font_prefix}${SSQRcode}${Font_color_suffix}"
+	SSQRcode="http://api.qrserver.com/v1/create-qr-code/?data=${SSurl}"
+	ss_link=" SS    링크 : ${Green_font_prefix}${SSurl}${Font_color_suffix} \n SS  QRCode : ${Green_font_prefix}${SSQRcode}${Font_color_suffix}"
 }
 ssr_link_qr(){
 	SSRprotocol=$(echo ${protocol} | sed 's/_compatible//g')
@@ -290,8 +290,8 @@ ssr_link_qr(){
 	SSRPWDbase64=$(urlsafe_base64 "${password}")
 	SSRbase64=$(urlsafe_base64 "${ip}:${port}:${SSRprotocol}:${method}:${SSRobfs}:${SSRPWDbase64}")
 	SSRurl="ssr://${SSRbase64}"
-	SSRQRcode="http://doub.pw/qr/qr.php?text=${SSRurl}"
-	ssr_link=" SSR   链接 : ${Red_font_prefix}${SSRurl}${Font_color_suffix} \n SSR 二维码 : ${Red_font_prefix}${SSRQRcode}${Font_color_suffix} \n "
+	SSRQRcode="http://api.qrserver.com/v1/create-qr-code/?data=${SSRurl}"
+	ssr_link=" SSR   링크 : ${Red_font_prefix}${SSRurl}${Font_color_suffix} \n SSR QRCode : ${Red_font_prefix}${SSRQRcode}${Font_color_suffix} \n "
 }
 ss_ssr_determine(){
 	protocol_suffix=`echo ${protocol} | awk -F "_" '{print $NF}'`
@@ -324,22 +324,22 @@ ss_ssr_determine(){
 	fi
 	ssr_link_qr
 }
-# 显示 配置信息
+# 설정정보 표시
 View_User(){
 	SSR_installation_status
 	List_port_user
 	while true
 	do
-		echo -e "请输入要查看账号信息的用户 端口"
-		read -e -p "(默认: 取消):" View_user_port
-		[[ -z "${View_user_port}" ]] && echo -e "已取消..." && exit 1
+		echo -e "계정 정보를 표시할 사용자 포트를 입력하세요"
+		read -e -p "(기본값: 취소):" View_user_port
+		[[ -z "${View_user_port}" ]] && echo -e "취소되었습니다..." && exit 1
 		View_user=$(cat "${config_user_mudb_file}"|grep '"port": '"${View_user_port}"',')
 		if [[ ! -z ${View_user} ]]; then
 			Get_User_info "${View_user_port}"
 			View_User_info
 			break
 		else
-			echo -e "${Error} 请输入正确的端口 !"
+			echo -e "${Error} 정확한 포트를 입력해주세요 !"
 		fi
 	done
 }
@@ -348,66 +348,66 @@ View_User_info(){
 	[[ -z "${ip}" ]] && Get_IP
 	ss_ssr_determine
 	clear && echo "===================================================" && echo
-	echo -e " 用户 [${user_name}] 的配置信息：" && echo
+	echo -e " 계정 [${user_name}] 의 설정 정보：" && echo
 	echo -e " I  P\t    : ${Green_font_prefix}${ip}${Font_color_suffix}"
-	echo -e " 端口\t    : ${Green_font_prefix}${port}${Font_color_suffix}"
-	echo -e " 密码\t    : ${Green_font_prefix}${password}${Font_color_suffix}"
-	echo -e " 加密\t    : ${Green_font_prefix}${method}${Font_color_suffix}"
-	echo -e " 协议\t    : ${Red_font_prefix}${protocol}${Font_color_suffix}"
-	echo -e " 混淆\t    : ${Red_font_prefix}${obfs}${Font_color_suffix}"
-	echo -e " 设备数限制 : ${Green_font_prefix}${protocol_param}${Font_color_suffix}"
-	echo -e " 单线程限速 : ${Green_font_prefix}${speed_limit_per_con} KB/S${Font_color_suffix}"
-	echo -e " 用户总限速 : ${Green_font_prefix}${speed_limit_per_user} KB/S${Font_color_suffix}"
-	echo -e " 禁止的端口 : ${Green_font_prefix}${forbidden_port} ${Font_color_suffix}"
+	echo -e " 포트\t    : ${Green_font_prefix}${port}${Font_color_suffix}"
+	echo -e " 암호\t    : ${Green_font_prefix}${password}${Font_color_suffix}"
+	echo -e " 암호화\t  : ${Green_font_prefix}${method}${Font_color_suffix}"
+	echo -e " 프로토콜\t: ${Red_font_prefix}${protocol}${Font_color_suffix}"
+	echo -e " 난독화\t  : ${Red_font_prefix}${obfs}${Font_color_suffix}"
+	echo -e " 장치수제한     : ${Green_font_prefix}${protocol_param}${Font_color_suffix}"
+	echo -e " 장치별속도제한 : ${Green_font_prefix}${speed_limit_per_con} KB/S${Font_color_suffix}"
+	echo -e " 계정총속도제한 : ${Green_font_prefix}${speed_limit_per_user} KB/S${Font_color_suffix}"
+	echo -e " 사용금지된포트 : ${Green_font_prefix}${forbidden_port} ${Font_color_suffix}"
 	echo
-	echo -e " 已使用流量 : 上传: ${Green_font_prefix}${u}${Font_color_suffix} + 下载: ${Green_font_prefix}${d}${Font_color_suffix} = ${Green_font_prefix}${transfer_enable_Used_2}${Font_color_suffix}"
-	echo -e " 剩余的流量 : ${Green_font_prefix}${transfer_enable_Used} ${Font_color_suffix}"
-	echo -e " 用户总流量 : ${Green_font_prefix}${transfer_enable} ${Font_color_suffix}"
+	echo -e " 사용데이터량 : 업로드: ${Green_font_prefix}${u}${Font_color_suffix} + 다운로드: ${Green_font_prefix}${d}${Font_color_suffix} = ${Green_font_prefix}${transfer_enable_Used_2}${Font_color_suffix}"
+	echo -e " 남은데이터량 : ${Green_font_prefix}${transfer_enable_Used} ${Font_color_suffix}"
+	echo -e " 계정총데이터량 : ${Green_font_prefix}${transfer_enable} ${Font_color_suffix}"
 	echo -e "${ss_link}"
 	echo -e "${ssr_link}"
-	echo -e " ${Green_font_prefix} 提示: ${Font_color_suffix}
- 在浏览器中，打开二维码链接，就可以看到二维码图片。
- 协议和混淆后面的[ _compatible ]，指的是 兼容原版协议/混淆。"
+	echo -e " ${Green_font_prefix} 알림: ${Font_color_suffix}
+ 브라우저에서 QR코드 링크를 열면 QR코드 이미지를 볼 수 있습니다.
+ 프로토콜 및 난독화 이름뒤의 [ _compatible ]은 프로토콜/난독화 원본의 겸용성 버전임을 표시합니다."
 	echo && echo "==================================================="
 }
 # 设置 配置信息
 Set_config_user(){
-	echo "请输入要设置的用户 用户名(请勿重复, 用于区分, 不支持中文、空格, 会报错 !)"
-	read -e -p "(默认: doubi):" ssr_user
+	echo "설정할 사용자의 사용자명을 입력하세요. (기존 사용자와 중복되면 안 되며, 영문만 사용하고 공백도 사용 불가능합니다!)"
+	read -e -p "(기본값: doubi):" ssr_user
 	[[ -z "${ssr_user}" ]] && ssr_user="doubi"
 	ssr_user=$(echo "${ssr_user}"|sed 's/ //g')
-	echo && echo ${Separator_1} && echo -e "	用户名 : ${Green_font_prefix}${ssr_user}${Font_color_suffix}" && echo ${Separator_1} && echo
+	echo && echo ${Separator_1} && echo -e "	사용자명 : ${Green_font_prefix}${ssr_user}${Font_color_suffix}" && echo ${Separator_1} && echo
 }
 Set_config_port(){
 	while true
 	do
-	echo -e "请输入要设置的用户 端口(请勿重复, 用于区分)"
-	read -e -p "(默认: 2333):" ssr_port
+	echo -e "설정할 사용자의 포트를 입력하세요. (기존 포트와 중복되면 안 됩니다.)"
+	read -e -p "(기본값: 2333):" ssr_port
 	[[ -z "$ssr_port" ]] && ssr_port="2333"
 	echo $((${ssr_port}+0)) &>/dev/null
 	if [[ $? == 0 ]]; then
 		if [[ ${ssr_port} -ge 1 ]] && [[ ${ssr_port} -le 65535 ]]; then
-			echo && echo ${Separator_1} && echo -e "	端口 : ${Green_font_prefix}${ssr_port}${Font_color_suffix}" && echo ${Separator_1} && echo
+			echo && echo ${Separator_1} && echo -e "	포트 : ${Green_font_prefix}${ssr_port}${Font_color_suffix}" && echo ${Separator_1} && echo
 			break
 		else
-			echo -e "${Error} 请输入正确的数字(1-65535)"
+			echo -e "${Error} 정확한 숫자를 입력해주세요(1-65535)"
 		fi
 	else
-		echo -e "${Error} 请输入正确的数字(1-65535)"
+		echo -e "${Error} 정확한 숫자를 입력해주세요(1-65535)"
 	fi
 	done
 }
 Set_config_password(){
-	echo "请输入要设置的用户 密码"
-	read -e -p "(默认: doub.io):" ssr_password
+	echo "설정할 사용자의 암호를 입력하세요"
+	read -e -p "(기본값: doub.io):" ssr_password
 	[[ -z "${ssr_password}" ]] && ssr_password="doub.io"
-	echo && echo ${Separator_1} && echo -e "	密码 : ${Green_font_prefix}${ssr_password}${Font_color_suffix}" && echo ${Separator_1} && echo
+	echo && echo ${Separator_1} && echo -e "	암호 : ${Green_font_prefix}${ssr_password}${Font_color_suffix}" && echo ${Separator_1} && echo
 }
 Set_config_method(){
-	echo -e "请选择要设置的用户 加密方式
+	echo -e "설정할 사용자의 암호화 방식을 입력하세요.
 	
  ${Green_font_prefix} 1.${Font_color_suffix} none
- ${Tip} 如果使用 auth_chain_* 系列协议，建议加密方式选择 none (该系列协议自带 RC4 加密)，混淆随意
+ ${Tip} 만약 auth_chain_* 시리즈 프로토콜을 사용하시면, 암호화 방식은 none을 선택하시길 건의합니다. (해당 프로토콜은 RC4 암호화를 기본 지원합니다.)，난독화는 임의로 선택 가능합니다.
  
  ${Green_font_prefix} 2.${Font_color_suffix} rc4
  ${Green_font_prefix} 3.${Font_color_suffix} rc4-md5
@@ -428,8 +428,8 @@ Set_config_method(){
  ${Green_font_prefix}14.${Font_color_suffix} salsa20
  ${Green_font_prefix}15.${Font_color_suffix} chacha20
  ${Green_font_prefix}16.${Font_color_suffix} chacha20-ietf
- ${Tip} salsa20/chacha20-*系列加密方式，需要额外安装依赖 libsodium ，否则会无法启动ShadowsocksR !" && echo
-	read -e -p "(默认: 5. aes-128-ctr):" ssr_method
+ ${Tip} salsa20/chacha20-* 시리즈 암호화 방식은 libsodium 라이브러리를 별도로 설치해야합니다. 그렇지 않으면 ShadowsocksR을 시작할 수 없습니다 !" && echo
+	read -e -p "(기본값: 5. aes-128-ctr):" ssr_method
 	[[ -z "${ssr_method}" ]] && ssr_method="5"
 	if [[ ${ssr_method} == "1" ]]; then
 		ssr_method="none"
@@ -466,10 +466,10 @@ Set_config_method(){
 	else
 		ssr_method="aes-128-ctr"
 	fi
-	echo && echo ${Separator_1} && echo -e "	加密 : ${Green_font_prefix}${ssr_method}${Font_color_suffix}" && echo ${Separator_1} && echo
+	echo && echo ${Separator_1} && echo -e "	암호화 : ${Green_font_prefix}${ssr_method}${Font_color_suffix}" && echo ${Separator_1} && echo
 }
 Set_config_protocol(){
-	echo -e "请选择要设置的用户 协议插件
+	echo -e "설정할 사용자의 프로토콜을 선택하세요.
 	
  ${Green_font_prefix}1.${Font_color_suffix} origin
  ${Green_font_prefix}2.${Font_color_suffix} auth_sha1_v4
@@ -477,8 +477,8 @@ Set_config_protocol(){
  ${Green_font_prefix}4.${Font_color_suffix} auth_aes128_sha1
  ${Green_font_prefix}5.${Font_color_suffix} auth_chain_a
  ${Green_font_prefix}6.${Font_color_suffix} auth_chain_b
- ${Tip} 如果使用 auth_chain_* 系列协议，建议加密方式选择 none (该系列协议自带 RC4 加密)，混淆随意" && echo
-	read -e -p "(默认: 3. auth_aes128_md5):" ssr_protocol
+ ${Tip} 만약 auth_chain_* 시리즈 프로토콜을 사용하시면, 암호화 방식은 none을 선택하시길 건의합니다. (해당 프로토콜은 RC4 암호화를 기본 지원합니다.)，난독화는 임의로 선택 가능합니다." && echo
+	read -e -p "(기본값: 3. auth_aes128_md5):" ssr_protocol
 	[[ -z "${ssr_protocol}" ]] && ssr_protocol="3"
 	if [[ ${ssr_protocol} == "1" ]]; then
 		ssr_protocol="origin"
@@ -495,10 +495,10 @@ Set_config_protocol(){
 	else
 		ssr_protocol="auth_aes128_md5"
 	fi
-	echo && echo ${Separator_1} && echo -e "	协议 : ${Green_font_prefix}${ssr_protocol}${Font_color_suffix}" && echo ${Separator_1} && echo
+	echo && echo ${Separator_1} && echo -e "	프로토콜 : ${Green_font_prefix}${ssr_protocol}${Font_color_suffix}" && echo ${Separator_1} && echo
 	if [[ ${ssr_protocol} != "origin" ]]; then
 		if [[ ${ssr_protocol} == "auth_sha1_v4" ]]; then
-			read -e -p "是否设置 协议插件兼容原版(_compatible)？[Y/n]" ssr_protocol_yn
+			read -e -p "프로토콜 겸용성을 설정하시겠습니까(_compatible)? [Y/n]" ssr_protocol_yn
 			[[ -z "${ssr_protocol_yn}" ]] && ssr_protocol_yn="y"
 			[[ $ssr_protocol_yn == [Yy] ]] && ssr_protocol=${ssr_protocol}"_compatible"
 			echo
@@ -506,17 +506,17 @@ Set_config_protocol(){
 	fi
 }
 Set_config_obfs(){
-	echo -e "请选择要设置的用户 混淆插件
+	echo -e "설정할 사용자의 난독화 방식을 입력하세요.
 	
  ${Green_font_prefix}1.${Font_color_suffix} plain
  ${Green_font_prefix}2.${Font_color_suffix} http_simple
  ${Green_font_prefix}3.${Font_color_suffix} http_post
  ${Green_font_prefix}4.${Font_color_suffix} random_head
  ${Green_font_prefix}5.${Font_color_suffix} tls1.2_ticket_auth
- ${Tip} 如果使用 ShadowsocksR 代理游戏，建议选择 混淆兼容原版或 plain 混淆，然后客户端选择 plain，否则会增加延迟 !
- 另外, 如果你选择了 tls1.2_ticket_auth，那么客户端可以选择 tls1.2_ticket_fastauth，这样即能伪装又不会增加延迟 !
- 如果你是在日本、美国等热门地区搭建，那么选择 plain 混淆可能被墙几率更低 !" && echo
-	read -e -p "(默认: 1. plain):" ssr_obfs
+ ${Tip} 만약 ShadowsocksR 프록시를 통해 게임을 하시는 경우, 난독화 겸용성 버전을 선택하거나 plain을 선택하시고, 클라이언트에서 plain으로 설정하세요. 그렇지 않으면 지연율이 높습니다.
+ 그리고 만약 tls1.2_ticket_auth를 선택한 경우, 클라이언트에서 tls1.2_ticket_fastauth를 선택하시면 위장도 되고 지연율도 높아지지 않습니다!
+ 만약 일본, 미국 등 인기있는 지역에 프록시를 구축한 경우, plain 난독화를 설정하면 탐지 가능성이 더 낮습니다." && echo
+	read -e -p "(기본값: 1. plain):" ssr_obfs
 	[[ -z "${ssr_obfs}" ]] && ssr_obfs="1"
 	if [[ ${ssr_obfs} == "1" ]]; then
 		ssr_obfs="plain"
@@ -531,9 +531,9 @@ Set_config_obfs(){
 	else
 		ssr_obfs="plain"
 	fi
-	echo && echo ${Separator_1} && echo -e "	混淆 : ${Green_font_prefix}${ssr_obfs}${Font_color_suffix}" && echo ${Separator_1} && echo
+	echo && echo ${Separator_1} && echo -e "	난독화 : ${Green_font_prefix}${ssr_obfs}${Font_color_suffix}" && echo ${Separator_1} && echo
 	if [[ ${ssr_obfs} != "plain" ]]; then
-			read -e -p "是否设置 混淆插件兼容原版(_compatible)？[Y/n]" ssr_obfs_yn
+			read -e -p "난독화의 겸용성(_compatible)을 설정하시겠습니까?[Y/n]" ssr_obfs_yn
 			[[ -z "${ssr_obfs_yn}" ]] && ssr_obfs_yn="y"
 			[[ $ssr_obfs_yn == [Yy] ]] && ssr_obfs=${ssr_obfs}"_compatible"
 			echo
@@ -542,20 +542,20 @@ Set_config_obfs(){
 Set_config_protocol_param(){
 	while true
 	do
-	echo -e "请输入要设置的用户 欲限制的设备数 (${Green_font_prefix} auth_* 系列协议 不兼容原版才有效 ${Font_color_suffix})"
-	echo -e "${Tip} 设备数限制：每个端口同一时间能链接的客户端数量(多端口模式，每个端口都是独立计算)，建议最少 2个。"
-	read -e -p "(默认: 无限):" ssr_protocol_param
+	echo -e "설정할 사용자의 제한할 장치 수를 입력하세요. (${Green_font_prefix} auth_* 시리즈 프로토콜은 겸용성이 아닌 원판 프로토콜에서만 유효합니다.${Font_color_suffix})"
+	echo -e "${Tip} 장치 수 제한：매 포트마다 동시에 연결할 수 있는 클라이언트 수로(다중 포트 모드에서는 매 포트를 독립적으로 계산합니다.), 최소 2개를 권장합니다."
+	read -e -p "(기본값: 무한):" ssr_protocol_param
 	[[ -z "$ssr_protocol_param" ]] && ssr_protocol_param="" && echo && break
 	echo $((${ssr_protocol_param}+0)) &>/dev/null
 	if [[ $? == 0 ]]; then
 		if [[ ${ssr_protocol_param} -ge 1 ]] && [[ ${ssr_protocol_param} -le 9999 ]]; then
-			echo && echo ${Separator_1} && echo -e "	设备数限制 : ${Green_font_prefix}${ssr_protocol_param}${Font_color_suffix}" && echo ${Separator_1} && echo
+			echo && echo ${Separator_1} && echo -e "	장치 수 제한 : ${Green_font_prefix}${ssr_protocol_param}${Font_color_suffix}" && echo ${Separator_1} && echo
 			break
 		else
-			echo -e "${Error} 请输入正确的数字(1-9999)"
+			echo -e "${Error} 정확한 숫자를 입력해주세요. (1-9999)"
 		fi
 	else
-		echo -e "${Error} 请输入正确的数字(1-9999)"
+		echo -e "${Error} 정확한 숫자를 입력해주세요. (1-9999)"
 	fi
 	done
 }
@@ -1663,12 +1663,12 @@ Other_functions(){
 }
 # 封禁 BT PT SPAM
 BanBTPTSPAM(){
-	wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ban_iptables.sh && chmod +x ban_iptables.sh && bash ban_iptables.sh banall
+	wget -N --no-check-certificate https://raw.githubusercontent.com/kikunae77/doubi/master/ban_iptables.sh && chmod +x ban_iptables.sh && bash ban_iptables.sh banall
 	rm -rf ban_iptables.sh
 }
 # 解封 BT PT SPAM
 UnBanBTPTSPAM(){
-	wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ban_iptables.sh && chmod +x ban_iptables.sh && bash ban_iptables.sh unbanall
+	wget -N --no-check-certificate https://raw.githubusercontent.com/kikunae77/doubi/master/ban_iptables.sh && chmod +x ban_iptables.sh && bash ban_iptables.sh unbanall
 	rm -rf ban_iptables.sh
 }
 Set_config_connect_verbose_info(){
@@ -1769,14 +1769,14 @@ crontab_monitor_ssr_cron_stop(){
 	fi
 }
 Update_Shell(){
-	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ssrmu.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/kikunae77/doubi/master/ssrmu.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
 	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
 	if [[ -e "/etc/init.d/ssrmu" ]]; then
 		rm -rf /etc/init.d/ssrmu
 		Service_SSR
 	fi
 	cd "${file}"
-	wget -N --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ssrmu.sh" && chmod +x ssrmu.sh
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/kikunae77/doubi/master/ssrmu.sh" && chmod +x ssrmu.sh
 	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
 # 显示 菜单状态
